@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	printf("Finalizador: Detener proceso Productor\n");
 	memory[0].position = 0;
 
-	sem_unlink(SEMAPHORE);
+	sem_unlink(SEMAPHORE_MEMORY);
 	sem_unlink(SEMAPHORE_FILE_LOG);
 	sem_unlink(SEMAPHORE_FILE_END);
 	sem_unlink(SEMAPHORE_FILE_DEAD);

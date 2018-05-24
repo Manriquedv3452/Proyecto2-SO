@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	remove("dead.log");
 
 	sem_t* sem_sm;
-	sem_sm = sem_open(SEMAPHORE, O_CREAT | O_EXCL, 0777, 1);
+	sem_sm = sem_open(SEMAPHORE_MEMORY, O_CREAT | O_EXCL, 0777, 1);
 
 	sem_t* sem_activity_log;
 	sem_activity_log = sem_open(SEMAPHORE_FILE_LOG, O_CREAT | O_EXCL, 0777, 1);

@@ -25,7 +25,7 @@
 #define MIN_TIME_CREATE_PROCESS 1 //30 segs
 #define MAX_TIME_CREATE_PROCESS 3 //60 segs
 
-#define SEMAPHORE "semaphore"
+#define SEMAPHORE_MEMORY "semaphore"
 
 #define ACTIVITY_LOG "activity.log"
 #define FILE_DEAD "dead.log"
