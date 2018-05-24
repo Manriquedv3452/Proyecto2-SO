@@ -3,21 +3,43 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <time.h>
+#include <fcntl.h>
+#include <semaphore.h>
+
+#define KEY 9999
 
 #define INITIALIZER 0
 #define PRODUCER 1
 #define SPY 2
 #define FINISHER 3
+#define PAGING 0
 
-key_t key = 9990;
-int* memory;
+#define MIN_AMOUNT_PAGES 1
+#define MAX_AMOUNT_PAGES 10
+
+#define MIN_AMOUNT_SEGMENTS 1
+#define MAX_AMOUNT_SEGMENTS 5
+
+#define MIN_AMOUNT_SPACES_SEGMENTS 1
+#define MAX_AMOUNT_SPACES_SEGMENTS 3
+
+#define MIN_TIME_PROCESS 1 //20 segs
+#define MAX_TIME_PROCESS 3 //60 segs
+
+#define MIN_TIME_CREATE_PROCESS 1 //30 segs
+#define MAX_TIME_CREATE_PROCESS 3 //60 segs
 
 struct sm_node {
-	int idLine;
+	int position;
 	unsigned long owner;
 	int num_segment; // Si es 0, es paginacion
 	int num_pag_seg; // numero de pagina o segmento
 };
+
+key_t key = 9990;
+struct sm_node* memory;
+static sem_t* sem_memory;
+static sem_t* sem_log;
 
 int get_id_shared_memory(key_t key, int size)
 {
@@ -33,32 +55,12 @@ int get_id_shared_memory(key_t key, int size)
     return shmid;
 }
 
-void write_activity_log(int writer, char* message) {
+void print_shared_memory(struct sm_node* memory)
+{
+    printf("\n[Memoria]:\n");
 
-    FILE* log;
-    char filename[] = "activity-log.txt";
-    log = fopen(filename, "a");
-    
-    if (log == NULL){
-        perror("No se puede abrir la bitacora.\n"); 
-    }
-    
-    time_t timer;
-    time(&timer);
-    struct tm* time = localtime(&timer);
-    
-    switch(writer)
-    {
-        case INITIALIZER:
-            fprintf(log, "\nInicializador:\n");
-            fprintf(log, "\tMensaje: %s\n", message);
-            fprintf(log, "Hora: %i:%i:%i\n", time->tm_hour, time->tm_min, time->tm_sec);
-            break;
-        default:
-            break;
-    }
-    
-    //fprintf(log, "Productor\n PID: %i; Tipo accion: %s; Hora: %i:%i:%i; Linea: %i\n", PID, "asignacion", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, line);
-    
-    fclose(log);
+	for (int i = 1; i < memory[0].owner + 1; i++) 
+		printf("Posicion:%d\tProceso:%u\tNum-Seg(0 Pag):%d\tNum-Pag o Num-Seg:%d\n", memory[i].position, memory[i].owner, memory[i].num_segment, memory[i].num_pag_seg);
+	
+	printf("\n\n");
 }

@@ -1,58 +1,46 @@
+#include <stdio.h>
+#include <sys/shm.h>
 #include "../Utilities/utilities.c"
-
-void show_help(void);
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2)
+	printf("Inicializador: Inicio\n");
+
+	// Se solicitan la cantidad de líneas por crear.
+	int memory_spaces = atoi(argv[1]);
+
+	printf("Inicializador: Solicitando recursos para memoria compartida\n");
+
+	int shmid = shmget(KEY, sizeof(struct sm_node)*(memory_spaces+1), IPC_CREAT | 0777);
+	if (shmid == -1)
     {
-        show_help();
-        return -1;
-    }
+		fprintf (stderr, "Error al solicitar recursos.\n");
+		return -1; 
+	}
 
-    int memory_spaces = atoi(argv[1]);
+	printf ("Inicializador: ID Memoria Compartida: %d\n", shmid);
 
-    int request_sm = get_id_shared_memory(key, sizeof(struct sm_node)*(memory_spaces+1));
-    if(request_sm < -1)
+	struct sm_node* memory = shmat(shmid, NULL, 0);
+	if (memory == NULL)
     {
-        return -1;
-    }
-    
-    struct sm_node* memory = shmat(request_sm, NULL, 0);
-    if(memory == NULL)
-    {
-        perror("Error al obtener la memoria compartida.\n");
-    }
+		fprintf (stderr, "Error al reservar la memoria compartida.\n");
+		return -1; 
+	}
 
-    remove("activity-log.txt");
-
-    memory[0].idLine = -1;
+	//Uso el primer (extra) espacio para tener el total de espacios de la memoria
+	memory[0].position = -1;
 	memory[0].owner = memory_spaces;
 	memory[0].num_segment = -1;
 	memory[0].num_pag_seg = -1;
 
-	int i;
-	for (i = 1; i < memory_spaces+1; i++) {
-		memory[i].idLine = i-1;
+	//Inicializar memoria compartida en 0
+	for (int i = 1; i < memory_spaces+1; i++) {
+		memory[i].position = i-1;
 		memory[i].owner = 0;
 		memory[i].num_segment = 0;
 		memory[i].num_pag_seg = 0;
 	}
 
-    printf("\n[Memoria]:\n");
-
-	for (i = 1; i < memory[0].owner + 1; i++) 
-		printf("Posicion:%d\tProceso:%u\tNum-Seg(0 Pag):%d\tNum-Pag o Num-Seg:%d\n", memory[i].idLine, memory[i].owner, memory[i].num_segment, memory[i].num_pag_seg);
-	
-	printf("\n\n");
-
-    write_activity_log(INITIALIZER, "Se ha preparado la memoria compartida.");
-
-    return 0;
-}
-
-void show_help()
-{
-	printf("\nArgumentos Incorrectos. Las opciones son:\n\n");
-	printf("\t/initializer <espacios de memoria a solicitar>\n\n");
+	printf("Inicializador: Fin\n");
+	return(0);
 }

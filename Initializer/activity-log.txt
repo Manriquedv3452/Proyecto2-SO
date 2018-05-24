@@ -1,4 +1,0 @@
-
-Inicializador:
-	Mensaje: Se ha preparado la memoria compartida.
-Hora: 5:24:36

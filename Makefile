@@ -4,7 +4,7 @@ clean:
 	rm -f Initializer/*.o Producer/*.o Spy/*.o Finisher/*.o Initializer/initializer Producer/producer Spy/spy Finisher/finisher
 
 initializer: Initializer/initializer.c
-	cd Initializer && gcc -o initializer initializer.c
+	cd Initializer && gcc -o initializer initializer.c -lpthread
 
 producer: Producer/producer.c
 	cd Producer && gcc -o producer producer.c -pthread
