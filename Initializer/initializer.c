@@ -9,9 +9,15 @@ int main(int argc, char *argv[])
 	// Se solicitan la cantidad de líneas por crear.
 	int memory_spaces = atoi(argv[1]);
 
+	int key = ftok(PATHKEY, KEY);
+	if (key == -1) {
+		fprintf (stderr, "Error en key\n");
+		return -1; 
+	}
+
 	printf("Inicializador: Solicitando recursos para memoria compartida\n");
 
-	int shmid = shmget(KEY, sizeof(struct sm_node)*(memory_spaces+1), IPC_CREAT | 0777);
+	int shmid = shmget(key, sizeof(struct sm_node), IPC_CREAT | 0777);
 	if (shmid == -1)
     {
 		fprintf (stderr, "Error al solicitar recursos.\n");

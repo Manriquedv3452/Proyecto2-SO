@@ -6,13 +6,9 @@
 #include <fcntl.h>
 #include <semaphore.h>
 
-#define KEY 9999
-
-#define INITIALIZER 0
-#define PRODUCER 1
-#define SPY 2
-#define FINISHER 3
-#define PAGING 0
+#define PATHKEY "/dev/null"
+#define KEY 9900
+#define THREADS_LIMIT 300
 
 #define MIN_AMOUNT_PAGES 1
 #define MAX_AMOUNT_PAGES 10
@@ -29,31 +25,42 @@
 #define MIN_TIME_CREATE_PROCESS 1 //30 segs
 #define MAX_TIME_CREATE_PROCESS 3 //60 segs
 
-struct sm_node {
+#define SEMAPHORE "semaphore"
+
+#define ACTIVITY_LOG "activity.log"
+#define FILE_DEAD "dead.log"
+#define FILE_END "finished.log"
+
+#define BLOCK "block"
+#define SEARCH "search"
+#define SLEEP "sleep"
+
+#define BUFF 1024
+
+#define SEMAPHORE_FILE_LOG "semaphore_log"
+#define SEMAPHORE_FILE_DEAD "semaphore_dead"
+#define SEMAPHORE_FILE_END "semaphore_end"
+
+#define TEST_BLOCK 0
+#define SLEEP_BLOCK 1
+#define TEST_SEARCH 0
+#define SLEEP_SEARCH 1
+
+struct sm_node
+{
 	int position;
-	unsigned long owner;
+	int owner;
 	int num_segment; // Si es 0, es paginacion
 	int num_pag_seg; // numero de pagina o segmento
 };
 
-key_t key = 9990;
-struct sm_node* memory;
-static sem_t* sem_memory;
-static sem_t* sem_log;
-
-int get_id_shared_memory(key_t key, int size)
+struct semaphores
 {
-    int shmid;
-    shmid = shmget(key, size, IPC_CREAT | 0666);
-
-    if(shmid < 0)
-    {
-        perror("Error al inicializar memoria compartida.");
-        return -1;
-    }
-
-    return shmid;
-}
+	sem_t* sem_shared_memory;
+	sem_t* sem_activity_log;
+	sem_t* sem_dead_log;
+	sem_t* sem_finished_log;
+};
 
 void print_shared_memory(struct sm_node* memory)
 {
@@ -63,4 +70,52 @@ void print_shared_memory(struct sm_node* memory)
 		printf("Posicion:%d\tProceso:%u\tNum-Seg(0 Pag):%d\tNum-Pag o Num-Seg:%d\n", memory[i].position, memory[i].owner, memory[i].num_segment, memory[i].num_pag_seg);
 	
 	printf("\n\n");
+}
+
+void get_hour(char* output)
+{
+    char hour[2];
+	char minutes[2];
+	char seconds[2];
+
+	time_t timer;
+    time(&timer);
+	struct tm* time = localtime(&timer);
+
+	sprintf(hour, "%i", time->tm_hour);
+	sprintf(minutes, "%i", time->tm_min);
+	sprintf(seconds, "%i", time->tm_sec);
+	
+	sprintf(output,"%s:%s:%s", hour, minutes, seconds);
+}
+
+void write_to_file(char* file, char* data)
+{
+	char* temp;
+	asprintf(&temp, "%s",data);
+
+	FILE* log;
+	log = fopen(file, "a");
+	fprintf(log, "%s", temp);
+	fclose(log);
+}
+
+void write_process_status(int PID, char * data)
+{
+    char* temp;
+	asprintf(&temp, "%s", data);
+
+	char* ffile;
+	asprintf(&ffile, "%d", PID);
+
+	FILE* pFile;
+	pFile = fopen(ffile, "w");
+	fprintf(pFile, "%s", temp);
+	fclose(pFile);
+}
+
+void remove_file(int PID){
+	char* ffile;
+	asprintf(&ffile, "%d", PID);
+	remove(ffile);
 }

@@ -1,255 +1,330 @@
-#include "../Utilities/utilities.c"
 #include <pthread.h>
+#include <sys/shm.h>
+#include <semaphore.h>
+#include "../Utilities/utilities.c"
+
+void show_help();
+int get_random(int min, int max);
+void start_paging(struct semaphores* struct_sems);
+void do_paging(int PID,int num_pages, struct semaphores * struct_sems);
+int free_space(struct sm_node* mem);
+void deallocate_memory(struct sm_node* mem, int PID);
+int cantidadEspaciosLibresContiguos(struct sm_node* mem, int N);
+void start_segmentation(struct semaphores* struct_sems);
+void asignarSegmentacion(int PID,int num_segment, struct semaphores * struct_sems);
 
 int process_id = 0;
-
-void show_help(void);
-void paging_process(void);
-void segmentation_process(void);
-void* thread_paging_process();
-int get_random(int min, int max);
-int available_space();
-void allocate_memory(int process_id, int num_pages);
-void deallocate_memory(int process_id);
-void write_activity_log(char* message);
+pthread_t processes[THREADS_LIMIT];
 
 int main(int argc, char *argv[])
 {
-    if(argc != 2)
+	srand(time(NULL));
+	
+    int segmentation = 0;
+    int paging = 0;
+
+    if(argc == 2)
+    {
+        if (strcmp(argv[1], "-pag") == 0)
+        {
+            paging = 1;
+        }
+        
+        else if (strcmp(argv[1], "-seg") == 0)
+        {
+            segmentation = 1;
+        }
+    }
+    else
     {
         show_help();
-        return -1;
+		return -1;
     }
 
-    srand(time(NULL));
+	remove("activity.log");
+	remove("finished.log");
+	remove("dead.log");
 
-    int paging = 0;
-    int segmentation = 0;
+	sem_t* sem_sm;
+	sem_sm = sem_open(SEMAPHORE, O_CREAT | O_EXCL, 0777, 1);
 
-    if (strcmp(argv[1],"-seg") == 0)
+	sem_t* sem_activity_log;
+	sem_activity_log = sem_open(SEMAPHORE_FILE_LOG, O_CREAT | O_EXCL, 0777, 1);
+
+	sem_t* sem_finished_log;
+	sem_finished_log = sem_open(SEMAPHORE_FILE_DEAD, O_CREAT | O_EXCL, 0777, 1);
+
+	sem_t* sem_dead_log;
+	sem_dead_log = sem_open(SEMAPHORE_FILE_END, O_CREAT | O_EXCL, 0777, 1);
+
+	struct semaphores struct_sems;
+	struct_sems.sem_shared_memory = sem_sm;
+	struct_sems.sem_activity_log = sem_activity_log;
+	struct_sems.sem_dead_log = sem_finished_log;
+	struct_sems.sem_finished_log = sem_dead_log;
+
+	int key = ftok(PATHKEY, KEY);
+	if (key == -1) {
+		fprintf (stderr, "Error en key\n");
+		return -1; 
+	}
+
+	printf("Productor: Solicitando recursos para memoria compartida\n");
+    int shmid = shmget(key, sizeof(struct sm_node), IPC_CREAT | 0777);
+	if (shmid == -1)
     {
-        segmentation = 1;
-    }
+		fprintf (stderr, "Error al solicitar recursos.\n");
+		return -1; 
+	}
 
-    if (strcmp(argv[1],"-pag") == 0){
-        paging = 1;
-    }
-
-    int request_sm = get_id_shared_memory(key, sizeof(struct sm_node));
-    
-    printf("ID MEMORIA: %d\n\n", request_sm);
-
-    if(request_sm < -1)
+	struct sm_node* memory = shmat(shmid, NULL, 0);
+	if (memory == NULL)
     {
-        return -1;
-    }
+		fprintf (stderr, "Error al reservar la memoria compartida.\n");
+		return -1; 
+	}
 
-    int i;
-
-    memory = shmat(request_sm, NULL, 0);
-
-    print_shared_memory(memory);
-
-    sem_memory = sem_open("Procesos", O_CREAT, 0666, 1);
-    sem_init(sem_memory, 0, 1);
-
-    sem_log = sem_open("Bitacora", O_CREAT, 0666, 1);
-    sem_init(sem_log, 0, 1);
-
-    if(paging == 1)
+	/*write_process_status(PID, BLOCK);
+    if(TEST_BLOCK)
     {
-        paging_process();
-    }
-    else if (segmentation == 1)
-    {
-        segmentation_process();
-    }
+		sleep(SLEEP_BLOCK);
+	}
+	*/
+	sem_wait(struct_sems.sem_shared_memory);
 
-    return 0;
+	int threads_index = 0;
+
+	// Crear thread para el proceso
+    while(memory[0].position == -1)
+    {
+		sem_post(struct_sems.sem_shared_memory);
+        pthread_t newthread;
+
+		if(segmentation == 1)
+        {
+			if (pthread_create(&processes[threads_index], NULL, start_segmentation, &struct_sems) != 0)
+				perror("pthread_create");
+
+		}
+        else if(paging == 1)
+        {
+			if (pthread_create(&processes[threads_index], NULL, start_paging, &struct_sems) != 0)
+				perror("pthread_create");
+		}
+
+		threads_index++;
+
+		// pausa entre ejecucion de procesos
+		int sleep_time = get_random(MIN_TIME_CREATE_PROCESS, MAX_TIME_CREATE_PROCESS);
+		printf("Productor: Sleep del proceso -> %d\n", sleep_time);
+		sleep(sleep_time);
+
+		sem_wait(struct_sems.sem_shared_memory);
+	}
+
+	sem_post(struct_sems.sem_shared_memory);
+
+	sem_destroy(sem_sm);
+	sem_destroy(sem_activity_log);
+	sem_destroy(sem_finished_log);
+	sem_destroy(sem_dead_log);
+
+	for (int i = 0; i < threads_index; i++)
+	{
+		pthread_join(processes[i], NULL);
+	}
+
+	return(0);
 }
 
 void show_help()
 {
 	printf("\nArgumentos Incorrectos. Las opciones son:\n\n");
-	printf("\t/producer -pag para paginacion\n");
-    printf("\t/producer -seg para segmentacion\n\n");
+	printf("\t./producer -pag para paginacion\n");
+    printf("\t./producer -seg para segmentacion\n\n");
 }
 
-void paging_process()
-{
-    // mientras el finisher no haya terminado la memoria
-    while(memory[0].owner != 0)
-    {
-        pthread_t* new_process;
-        new_process = (pthread_t*)malloc(sizeof(*new_process));
-
-        if(pthread_create(&new_process, NULL, (void*)thread_paging_process, NULL) != 0)
-        {
-            perror("Error al crear thread de proceso.");
-        }
-
-        //sleep para la pausar creacion de procesos
-        sleep(get_random(MIN_TIME_CREATE_PROCESS, MAX_TIME_CREATE_PROCESS));
-    }
-}
-
-void* thread_paging_process()
-{
-    int num_pages = get_random(MIN_AMOUNT_PAGES, MAX_AMOUNT_PAGES);
-
-    int request_sm = get_id_shared_memory(key, sizeof(struct sm_node));
-    
-    if(request_sm < -1)
-    {
-        perror("Error al obtener memoria compartida.");
-        return;
-    }
-
-    memory = shmat(request_sm, NULL, 0);
-    if(memory == NULL)
-    {
-        perror("Error al obtener memoria compartida.");
-        return;
-    }
-
-    process_id++;
-    printf("\nEl proceso %d ha sido creado con %d paginas.\n", process_id, num_pages);
-    printf("El proceso espera el candado de la memoria\n");
-
-    //Obtener candado para usar memoria compartida
-    sem_wait(sem_memory);
-
-    allocate_memory(process_id, num_pages);
-
-    //liberar candado de memoria compartida
-    sem_post(sem_memory);
-
-    //simular ejecucion de proceso
-    sleep(get_random(MIN_TIME_PROCESS, MAX_TIME_PROCESS));
-    sem_wait(sem_memory);
-    deallocate_memory(process_id);
-
-    sem_post(sem_memory);
-
-    pthread_cancel(pthread_self());
-}
-
-void segmentation_process()
-{
-    return;
-}
-
-int get_random(int min, int max)
-{
+int get_random(int min, int max){
 	int num;
 	num = rand();
 	num = num % (max - min + 1);
 	return (num + min);
 }
 
-int available_space_memory()
+void start_paging(struct semaphores* struct_sems)
 {
-    int i, count = 0;
-	for(i = 1; i < memory[0].owner + 1; i++)
-    {
-		if( memory[i].owner == 0 && 
-            memory[i].num_segment == 0 && 
-			memory[i].num_pag_seg == 0)
-        {
-            count++;
-        }
-	}
+	process_id++;
+	int num_pages = get_random(MIN_AMOUNT_PAGES, MAX_AMOUNT_PAGES);
+	printf("Productor: Nuevo proceso %d con %d paginas.\n", process_id, num_pages);
 
-	return count;
+	do_paging(process_id, num_pages, struct_sems);
+
+	pthread_cancel(pthread_self());
 }
 
-void allocate_memory(int process_id, int num_pages)
-{
-    printf("\nBuscando ubicacion para las paginas\n");
-    int space_memory = available_space_memory();
-    printf("Espacio Disponible: %d\n", space_memory);
-    
-    if(num_pages <= space_memory)
+void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
+
+    int key = ftok(PATHKEY, KEY);
+	if (key == -1) {
+		fprintf (stderr, "Error en key\n");
+		return; 
+	}
+
+	printf("Productor: Solicitando recursos para memoria compartida\n");
+    int shmid = shmget(key, sizeof(struct sm_node), IPC_CREAT | 0777);
+	if (shmid == -1)
     {
-        int allocated_spaces = 0;
+		fprintf (stderr, "Error al solicitar recursos.\n");
+		return; 
+	}
 
-        for(int i = 1; i < memory[0].owner + 1; i++)
+	struct sm_node* memory = shmat(shmid, NULL, 0);
+	if (memory == NULL)
+    {
+		fprintf (stderr, "Error al reservar la memoria compartida.\n");
+		return; 
+	}
+
+	/*write_process_status(PID, BLOCK);
+    if(TEST_BLOCK)
+    {
+		sleep(SLEEP_BLOCK);
+	}
+	*/
+	sem_wait(struct_sems->sem_shared_memory);
+
+	/*write_process_status(PID, SEARCH);
+    if(TEST_SEARCH)
+    {
+		sleep(SLEEP_SEARCH);
+	}
+	*/
+	int free_space_mem = free_space(memory);
+	printf("\nProductor: Espacios libres en memoria compartida -> %d.\n", free_space_mem);
+	
+    if(num_pages <= free_space_mem)
+    {
+        int asigned_spaces = 0;
+		for(int i = 1; i < memory[0].owner + 1; i++)
         {
-            if( memory[i].owner == 0 && 
+			// Espacio disponible
+			if( memory[i].owner == 0 && 
                 memory[i].num_segment == 0 && 
-			    memory[i].num_pag_seg == 0)
+                memory[i].num_pag_seg == 0)
             {
-                allocated_spaces++;
-                memory[i].owner = process_id;
-                memory[i].num_segment = PAGING;
-                memory[i].num_pag_seg = allocated_spaces;
 
-                //escribir en bitacora
-                char* message;
-				asprintf(&message, "PID:%d \tAsignacion \tEspacio: ", process_id);
-                sem_wait(sem_log);
-                write_activity_log(message);
-                sem_post(sem_log);
+                // Asignacion
+                asigned_spaces++;
+                memory[i].owner = PID;
+                memory[i].num_segment = 0;
+                memory[i].num_pag_seg = asigned_spaces;
 
-                if(allocated_spaces == num_pages)
+                char hour[8];
+                get_hour(hour);
+
+                char* data;
+                asprintf(&data, "Proceso:%d\tAsignacion\t%s\tPag\tPos:%d\tAsig:%d\n",
+                        PID, hour, memory[i].position, asigned_spaces);
+
+                sem_wait(struct_sems->sem_activity_log);
+                write_to_file(ACTIVITY_LOG, data);
+                sem_post(struct_sems->sem_activity_log);
+
+                if(asigned_spaces == num_pages )
                 {
-                    printf("\nPaginas asignadas al proceso %d\n", process_id);
+                    printf("Productor: Asignacion de paginas en memoria terminada.\n");
                     break;
                 }
             }
-        }
-    }
+		}
+
+	}
+    
     else
     {
-        printf("\nNo hay espacio suficiente para el proceso %d\n", process_id);
-        char* message;
-        asprintf(&message, "No hay espacio suficiente para el proceso %d. El proceso muere.", process_id);
-        write_activity_log(message);
-        sem_post(sem_log);
-    }
+		printf("Productor: No hay espacio disponible para el proceso -> %d\n", PID);
+
+		char hour[8];
+		get_hour(hour);
+
+		char* data;
+		asprintf(&data, "Proceso:%d\tNo hay espacio\t%s\tPag\t-\n", PID, hour);
+
+		sem_wait(struct_sems->sem_activity_log);
+		write_to_file(ACTIVITY_LOG, data);
+		sem_post(struct_sems->sem_activity_log);
+
+		char* data_dead;
+		asprintf(&data_dead, "%d\n", PID);
+		sem_wait(struct_sems->sem_dead_log);
+		write_to_file(FILE_DEAD,data_dead);
+		sem_post(struct_sems->sem_dead_log);
+
+		remove_file(PID);
+
+		sem_post(struct_sems->sem_shared_memory);
+		return;
+	}
+
+	sem_post(struct_sems->sem_shared_memory);
+
+	write_process_status(PID, SLEEP);
+	
+    // Simulacion de ejecucion del proceso
+	sleep(get_random(MIN_TIME_PROCESS, MAX_TIME_PROCESS));
+
+	write_process_status(PID, BLOCK);
+	
+    sem_wait(struct_sems->sem_shared_memory);
+	
+	deallocate_memory(memory, PID);
+
+	char hour[8];
+	get_hour(hour);
+
+	char* data;
+	asprintf(&data, "Proceso:%d\tDesasignacion\t%s\tPag\t-\n", PID, hour);
+
+	sem_wait(struct_sems->sem_activity_log);
+	write_to_file(ACTIVITY_LOG,data);
+	sem_post(struct_sems->sem_activity_log);
+
+	sem_post(struct_sems->sem_shared_memory);
+
+	char* data_finished;
+	asprintf(&data_finished, "%d\n", PID);
+	sem_wait(struct_sems->sem_finished_log);
+	write_to_file(FILE_END, data_finished);
+	sem_post(struct_sems->sem_finished_log);
+
+	remove_file(PID);
 }
 
-void deallocate_memory(int process_id)
+int free_space(struct sm_node* mem){
+	int i, count = 0;
+	for(i = 1; i < mem[0].owner +1; i++){
+		if(mem[i].owner == 0 && 
+			mem[i].num_segment == 0 && 
+			mem[i].num_pag_seg == 0)
+			count++;
+	}
+	return count;
+}
+
+void deallocate_memory(struct sm_node* memory, int PID)
 {
-    for(int i = 1; i < memory[0].owner +1; i++)
+	for(int i = 1; i < memory[0].owner + 1; i++)
     {
-		if(memory[i].owner == process_id)
+		if(memory[i].owner == PID)
         {
-            memory[i].owner = 0;
+			memory[i].owner = 0;
 			memory[i].num_segment = 0;
 			memory[i].num_pag_seg = 0;
 		}
 	}
-
-    //escribir en bitacora
-    char* message;
-    asprintf(&message, "PID:%d \tDesasignacion \tEspacio: ", process_id);
-    write_activity_log(message);
 }
 
-void write_activity_log(char* message) {
-
-    FILE* log;
-    char filename[] = "activity-log.txt";
-    log = fopen(filename, "a");
-    
-    if (log == NULL){
-        perror("No se puede abrir la bitacora.\n"); 
-    }
-    
-    time_t timer;
-    time(&timer);
-    struct tm* time = localtime(&timer);
-    sem_wait(sem_log);
-
-    fprintf(log, "\nProductor:\n");
-    fprintf(log, "\tMensaje: %s\n", message);
-    fprintf(log, "\tHora: %i:%i:%i\n", time->tm_hour, time->tm_min, time->tm_sec);
-
-     //fprintf(log, "Productor\n PID: %i; Tipo accion: %s; Hora: %i:%i:%i; Linea: %i\n", PID, "asignacion", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, line);
-    
-    sem_post(sem_log);
-    fclose(log);
-
-    printf("\n**** Se escribe en bitacora: %s ****\n", message);
+void start_segmentation(struct semaphores* struct_sems)
+{
+    return;
 }
