@@ -37,14 +37,14 @@ Programa Espía: Para efectos de control este programa debe responder a las sigu
 
 Estado de la memoria en determinado momento. Debe mostrar cómo están acomodados los procesos en la memoria.
 Estado de los Procesos. Al pedir el estado debe decirme:
-El PID de los proceso que estén en la memoria en ese momento (sleep)
-El PID del único proceso que esté buscando espacio en la memoria. (punto 2 del proceso)
-El PID de los procesos que estén bloqueados (esperando por la región critica) (punto 1 o 6 del
+El p_id de los proceso que estén en la memoria en ese momento (sleep)
+El p_id del único proceso que esté buscando espacio en la memoria. (punto 2 del proceso)
+El p_id de los procesos que estén bloqueados (esperando por la región critica) (punto 1 o 6 del
 proceso).
-El PID de los procesos que han muerto por no haber espacio suficiente.
-El PID de los procesos que ya terminaron su ejecución.
+El p_id de los procesos que han muerto por no haber espacio suficiente.
+El p_id de los procesos que ya terminaron su ejecución.
 
-Bitácora: Todos los procesos deben registrar sus acciones. Esto incluye que diga por cada PID, la acción, que tipo es (asignación, desasignación), 
+Bitácora: Todos los procesos deben registrar sus acciones. Esto incluye que diga por cada p_id, la acción, que tipo es (asignación, desasignación), 
 hora y espacio asignado para cada uno de sus páginas o segmentos. Para el caso que un proceso no haya entrado a la memoria debe registrar este hecho 
 en la bitácora.
 

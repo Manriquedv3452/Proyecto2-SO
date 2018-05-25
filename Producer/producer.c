@@ -6,12 +6,12 @@
 void show_help();
 int get_random(int min, int max);
 void start_paging(struct semaphores* struct_sems);
-void do_paging(int PID,int num_pages, struct semaphores * struct_sems);
+void do_paging(int p_id,int num_pages, struct semaphores * struct_sems);
 int free_space(struct sm_node* mem);
-void deallocate_memory(struct sm_node* mem, int PID);
-int cantidadEspaciosLibresContiguos(struct sm_node* mem, int N);
+void deallocate_memory(struct sm_node* mem, int p_id);
+int contiguous_free_spaces(struct sm_node* mem, int spaces_mem_by_seg);
 void start_segmentation(struct semaphores* struct_sems);
-void asignarSegmentacion(int PID,int num_segment, struct semaphores * struct_sems);
+void do_segmentation(int p_id, int num_segments, struct semaphores* struct_sems);
 
 int process_id = 0;
 pthread_t processes[THREADS_LIMIT];
@@ -84,12 +84,6 @@ int main(int argc, char *argv[])
 		return -1; 
 	}
 
-	/*write_process_status(PID, BLOCK);
-    if(TEST_BLOCK)
-    {
-		sleep(SLEEP_BLOCK);
-	}
-	*/
 	sem_wait(struct_sems.sem_shared_memory);
 
 	int threads_index = 0;
@@ -102,13 +96,13 @@ int main(int argc, char *argv[])
 
 		if(segmentation == 1)
         {
-			if (pthread_create(&processes[threads_index], NULL, start_segmentation, &struct_sems) != 0)
+			if (pthread_create(&processes[threads_index], NULL, (void*)start_segmentation, &struct_sems) != 0)
 				perror("pthread_create");
 
 		}
         else if(paging == 1)
         {
-			if (pthread_create(&processes[threads_index], NULL, start_paging, &struct_sems) != 0)
+			if (pthread_create(&processes[threads_index], NULL, (void*)start_paging, &struct_sems) != 0)
 				perror("pthread_create");
 		}
 
@@ -162,7 +156,7 @@ void start_paging(struct semaphores* struct_sems)
 	pthread_cancel(pthread_self());
 }
 
-void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
+void do_paging(int p_id, int num_pages, struct semaphores* struct_sems){
 
     int key = ftok(PATHKEY, KEY);
 	if (key == -1) {
@@ -185,20 +179,8 @@ void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
 		return; 
 	}
 
-	/*write_process_status(PID, BLOCK);
-    if(TEST_BLOCK)
-    {
-		sleep(SLEEP_BLOCK);
-	}
-	*/
 	sem_wait(struct_sems->sem_shared_memory);
 
-	/*write_process_status(PID, SEARCH);
-    if(TEST_SEARCH)
-    {
-		sleep(SLEEP_SEARCH);
-	}
-	*/
 	int free_space_mem = free_space(memory);
 	printf("\nProductor: Espacios libres en memoria compartida -> %d.\n", free_space_mem);
 	
@@ -215,8 +197,8 @@ void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
 
                 // Asignacion
                 asigned_spaces++;
-                memory[i].owner = PID;
-                memory[i].num_segment = 0;
+                memory[i].owner = p_id;
+                memory[i].num_segment = -2;
                 memory[i].num_pag_seg = asigned_spaces;
 
                 char hour[8];
@@ -224,7 +206,7 @@ void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
 
                 char* data;
                 asprintf(&data, "Proceso:%d\tAsignacion\t%s\tPag\tPos:%d\tAsig:%d\n",
-                        PID, hour, memory[i].position, asigned_spaces);
+                        p_id, hour, memory[i].position, asigned_spaces);
 
                 sem_wait(struct_sems->sem_activity_log);
                 write_to_file(ACTIVITY_LOG, data);
@@ -242,48 +224,42 @@ void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
     
     else
     {
-		printf("Productor: No hay espacio disponible para el proceso -> %d\n", PID);
+		printf("Productor: No hay espacio disponible para el proceso %d\n", p_id);
 
 		char hour[8];
 		get_hour(hour);
 
 		char* data;
-		asprintf(&data, "Proceso:%d\tNo hay espacio\t%s\tPag\t-\n", PID, hour);
+		asprintf(&data, "Proceso:%d\tNo hay espacio\t%s\tPag\t-\n", p_id, hour);
 
 		sem_wait(struct_sems->sem_activity_log);
 		write_to_file(ACTIVITY_LOG, data);
 		sem_post(struct_sems->sem_activity_log);
 
 		char* data_dead;
-		asprintf(&data_dead, "%d\n", PID);
+		asprintf(&data_dead, "%d\n", p_id);
 		sem_wait(struct_sems->sem_dead_log);
 		write_to_file(FILE_DEAD,data_dead);
 		sem_post(struct_sems->sem_dead_log);
-
-		remove_file(PID);
 
 		sem_post(struct_sems->sem_shared_memory);
 		return;
 	}
 
 	sem_post(struct_sems->sem_shared_memory);
-
-	write_process_status(PID, SLEEP);
 	
     // Simulacion de ejecucion del proceso
 	sleep(get_random(MIN_TIME_PROCESS, MAX_TIME_PROCESS));
-
-	write_process_status(PID, BLOCK);
 	
     sem_wait(struct_sems->sem_shared_memory);
 	
-	deallocate_memory(memory, PID);
+	deallocate_memory(memory, p_id);
 
 	char hour[8];
 	get_hour(hour);
 
 	char* data;
-	asprintf(&data, "Proceso:%d\tDesasignacion\t%s\tPag\t-\n", PID, hour);
+	asprintf(&data, "Proceso:%d\tDesasignacion\t%s\tPag\t-\n", p_id, hour);
 
 	sem_wait(struct_sems->sem_activity_log);
 	write_to_file(ACTIVITY_LOG,data);
@@ -292,30 +268,29 @@ void do_paging(int PID, int num_pages, struct semaphores* struct_sems){
 	sem_post(struct_sems->sem_shared_memory);
 
 	char* data_finished;
-	asprintf(&data_finished, "%d\n", PID);
+	asprintf(&data_finished, "%d\n", p_id);
 	sem_wait(struct_sems->sem_finished_log);
 	write_to_file(FILE_END, data_finished);
 	sem_post(struct_sems->sem_finished_log);
 
-	remove_file(PID);
 }
 
 int free_space(struct sm_node* mem){
-	int i, count = 0;
+	int i, counter = 0;
 	for(i = 1; i < mem[0].owner +1; i++){
 		if(mem[i].owner == 0 && 
 			mem[i].num_segment == 0 && 
 			mem[i].num_pag_seg == 0)
-			count++;
+			counter++;
 	}
-	return count;
+	return counter;
 }
 
-void deallocate_memory(struct sm_node* memory, int PID)
+void deallocate_memory(struct sm_node* memory, int p_id)
 {
 	for(int i = 1; i < memory[0].owner + 1; i++)
     {
-		if(memory[i].owner == PID)
+		if(memory[i].owner == p_id)
         {
 			memory[i].owner = 0;
 			memory[i].num_segment = 0;
@@ -326,5 +301,147 @@ void deallocate_memory(struct sm_node* memory, int PID)
 
 void start_segmentation(struct semaphores* struct_sems)
 {
-    return;
+    process_id++;
+	int num_segments = get_random(MIN_AMOUNT_SEGMENTS, MAX_AMOUNT_SEGMENTS);
+	printf("Productor: Nuevo proceso %d con %d segmentos.\n", process_id, num_segments);
+
+	do_segmentation(process_id, num_segments, struct_sems);
+
+	pthread_cancel(pthread_self());
+}
+
+void do_segmentation(int p_id, int num_segments, struct semaphores* struct_sems)
+{
+	int key = ftok(PATHKEY, KEY);
+	if (key == -1) {
+		fprintf (stderr, "Error en key\n");
+		return; 
+	}
+
+	printf("Productor: Solicitando recursos para memoria compartida\n");
+    int shmid = shmget(key, sizeof(struct sm_node), IPC_CREAT | 0777);
+	if (shmid == -1)
+    {
+		fprintf (stderr, "Error al solicitar recursos.\n");
+		return; 
+	}
+
+	struct sm_node* memory = shmat(shmid, NULL, 0);
+	if (memory == NULL)
+    {
+		fprintf (stderr, "Error al reservar la memoria compartida.\n");
+		return; 
+	}
+
+	sem_wait(struct_sems->sem_shared_memory);
+
+	int space_for_process = 1;
+	char* data = "";
+
+	for(int i = 0; i < num_segments; i++)
+	{
+		//cantidad aleatoria de espacios de memoria para el segmento
+		int spaces_mem_by_seg = get_random(MIN_MEM_SPACES_SEG, MAX_MEM_SPACES_SEG);
+		printf("Productor: Cantidad de espacios de memoria por segmento para el proceso %d: %d\n",
+				p_id, spaces_mem_by_seg);
+		
+		int free_space = contiguous_free_spaces(memory, spaces_mem_by_seg * num_segments);
+		if(free_space == -1)
+		{
+			printf("Productor: No hay espacio disponible para el proceso %d\n", p_id);
+			deallocate_memory(memory, p_id);
+
+			char hour[8];
+			get_hour(hour);
+
+			char* data;
+			asprintf(&data, "Proceso:%d\tNo hay espacio\t%s\tPag\t-\n", p_id, hour);
+
+			sem_wait(struct_sems->sem_activity_log);
+			write_to_file(ACTIVITY_LOG, data);
+			sem_post(struct_sems->sem_activity_log);
+
+			char* data_dead;
+			asprintf(&data_dead, "%d\n", p_id);
+			sem_wait(struct_sems->sem_dead_log);
+			write_to_file(FILE_DEAD, data_dead);
+			sem_post(struct_sems->sem_dead_log);
+
+			sem_post(struct_sems->sem_shared_memory);
+			return;
+		}
+
+		else
+		{
+			for(int j = 0; j < spaces_mem_by_seg; j++)
+			{
+				memory[free_space + j].owner = p_id;
+				memory[free_space + j].num_segment = i + 1;
+				memory[free_space + j].num_pag_seg = j + 1;
+
+				char hour[8];
+				get_hour(hour);
+				
+				asprintf(&data, "Proceso:%d\tAsignacion\t%s\tSeg\tPos:%d\t Num_Seg:%d - Offset:%d\n",
+                        p_id, hour, memory[free_space + j].position, i + 1, j + 1);
+
+				sem_wait(struct_sems->sem_activity_log);
+				write_to_file(ACTIVITY_LOG, data);
+				sem_post(struct_sems->sem_activity_log);
+			}
+		}
+
+		sem_post(struct_sems->sem_shared_memory);
+
+		// Simulacion de ejecucion del proceso
+		sleep(get_random(MIN_TIME_PROCESS, MAX_TIME_PROCESS));
+	
+    	sem_wait(struct_sems->sem_shared_memory);
+	
+		deallocate_memory(memory, p_id);
+
+		char hour[8];
+		get_hour(hour);
+
+		char* data;
+		asprintf(&data, "Proceso:%d\tDesasignacion\t%s\tSeg\t-\n", p_id, hour);
+
+		sem_wait(struct_sems->sem_activity_log);
+		write_to_file(ACTIVITY_LOG, data);
+		sem_post(struct_sems->sem_activity_log);
+
+		sem_post(struct_sems->sem_shared_memory);
+
+		char* data_finished;
+		asprintf(&data_finished, "%d\n", p_id);
+		sem_wait(struct_sems->sem_finished_log);
+		write_to_file(FILE_END, data_finished);
+		sem_post(struct_sems->sem_finished_log);
+	}
+}
+
+int contiguous_free_spaces(struct sm_node* memory, int spaces_mem_by_seg)
+{
+	int counter = 0;
+
+	for(int i = 1; i < memory[0].owner + 1; i++)
+	{
+		if(memory[i].owner == 0 && 
+			memory[i].num_segment == 0 && 
+			memory[i].num_pag_seg == 0)
+		{
+				counter++;
+
+				if(counter == spaces_mem_by_seg)
+				{
+					return (i - (spaces_mem_by_seg - 1));
+				}
+		}
+		else
+		{
+			counter = 0;
+		}
+	}
+
+	return -1;
 }

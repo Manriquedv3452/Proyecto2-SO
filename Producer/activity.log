@@ -1,22 +1,124 @@
-Proceso:1	Asignacion	1:41:15	Pag	Pos:0	Asig:1
-Proceso:1	Asignacion	1:41:15	Pag	Pos:1	Asig:2
-Proceso:1	Asignacion	1:41:15	Pag	Pos:2	Asig:3
-Proceso:1	Asignacion	1:41:15	Pag	Pos:3	Asig:4
-Proceso:1	Asignacion	1:41:15	Pag	Pos:4	Asig:5
-Proceso:1	Asignacion	1:41:15	Pag	Pos:5	Asig:6
-Proceso:1	Asignacion	1:41:15	Pag	Pos:6	Asig:7
-Proceso:1	Asignacion	1:41:15	Pag	Pos:7	Asig:8
-Proceso:1	Desasignacion	1:41:17	Pag	-
-Proceso:2	Asignacion	1:41:18	Pag	Pos:0	Asig:1
-Proceso:2	Asignacion	1:41:18	Pag	Pos:1	Asig:2
-Proceso:2	Asignacion	1:41:18	Pag	Pos:2	Asig:3
-Proceso:2	Asignacion	1:41:18	Pag	Pos:3	Asig:4
-Proceso:2	Asignacion	1:41:18	Pag	Pos:4	Asig:5
-Proceso:2	Asignacion	1:41:18	Pag	Pos:5	Asig:6
-Proceso:2	Asignacion	1:41:18	Pag	Pos:6	Asig:7
-Proceso:2	Asignacion	1:41:18	Pag	Pos:7	Asig:8
-Proceso:2	Asignacion	1:41:18	Pag	Pos:8	Asig:9
-Proceso:2	Asignacion	1:41:18	Pag	Pos:9	Asig:10
-Proceso:3	No hay espacio	1:41:19	Pag	-
-Proceso:4	No hay espacio	1:41:20	Pag	-
-Proceso:2	Desasignacion	1:41:20	Pag	-
+Proceso:1	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:1 - Offset:1
+Proceso:1	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:1 - Offset:2
+Proceso:1	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:3
+Proceso:1	Desasignacion	4:4:4	Seg	-
+Proceso:1	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:2	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:1 - Offset:1
+Proceso:2	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:2
+Proceso:1	Desasignacion	4:4:4	Seg	-
+Proceso:1	No hay espacio	4:4:4	Pag	-
+Proceso:2	Desasignacion	4:4:4	Seg	-
+Proceso:2	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:3	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:1 - Offset:1
+Proceso:2	Desasignacion	4:4:4	Seg	-
+Proceso:3	Desasignacion	4:4:4	Seg	-
+Proceso:3	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:3	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:2 - Offset:2
+Proceso:4	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:1
+Proceso:4	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:2
+Proceso:3	Desasignacion	4:4:4	Seg	-
+Proceso:3	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:3 - Offset:1
+Proceso:3	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:3 - Offset:2
+Proceso:3	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:3 - Offset:3
+Proceso:4	Desasignacion	4:4:4	Seg	-
+Proceso:4	No hay espacio	4:4:4	Pag	-
+Proceso:5	No hay espacio	4:4:4	Pag	-
+Proceso:3	Desasignacion	4:4:4	Seg	-
+Proceso:3	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:4 - Offset:1
+Proceso:3	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:4 - Offset:2
+Proceso:3	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:4 - Offset:3
+Proceso:6	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:1
+Proceso:6	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:2
+Proceso:6	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:1 - Offset:3
+Proceso:6	Desasignacion	4:4:4	Seg	-
+Proceso:6	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:2 - Offset:1
+Proceso:6	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:2 - Offset:2
+Proceso:6	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:2 - Offset:3
+Proceso:7	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:1 - Offset:1
+Proceso:7	Asignacion	4:4:4	Seg	Pos:7	 Num_Seg:1 - Offset:2
+Proceso:3	Desasignacion	4:4:4	Seg	-
+Proceso:7	Desasignacion	4:4:4	Seg	-
+Proceso:6	Desasignacion	4:4:4	Seg	-
+Proceso:7	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:6	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:3 - Offset:1
+Proceso:6	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:3 - Offset:2
+Proceso:8	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:1
+Proceso:8	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:2
+Proceso:8	Desasignacion	4:4:4	Seg	-
+Proceso:8	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:2 - Offset:1
+Proceso:6	Desasignacion	4:4:4	Seg	-
+Proceso:9	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:1
+Proceso:9	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:1 - Offset:2
+Proceso:9	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:1 - Offset:3
+Proceso:7	Desasignacion	4:4:4	Seg	-
+Proceso:7	Asignacion	4:4:4	Seg	Pos:7	 Num_Seg:3 - Offset:1
+Proceso:10	No hay espacio	4:4:4	Pag	-
+Proceso:9	Desasignacion	4:4:4	Seg	-
+Proceso:8	Desasignacion	4:4:4	Seg	-
+Proceso:8	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:3 - Offset:1
+Proceso:8	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:3 - Offset:2
+Proceso:11	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:1
+Proceso:7	Desasignacion	4:4:4	Seg	-
+Proceso:7	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:4 - Offset:1
+Proceso:7	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:4 - Offset:2
+Proceso:8	Desasignacion	4:4:4	Seg	-
+Proceso:7	Desasignacion	4:4:4	Seg	-
+Proceso:7	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:5 - Offset:1
+Proceso:12	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:1 - Offset:1
+Proceso:11	Desasignacion	4:4:4	Seg	-
+Proceso:11	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:2 - Offset:1
+Proceso:13	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:1 - Offset:1
+Proceso:13	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:2
+Proceso:11	Desasignacion	4:4:4	Seg	-
+Proceso:11	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:3 - Offset:1
+Proceso:7	Desasignacion	4:4:4	Seg	-
+Proceso:11	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:3 - Offset:2
+Proceso:12	Desasignacion	4:4:4	Seg	-
+Proceso:11	Desasignacion	4:4:4	Seg	-
+Proceso:11	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:4 - Offset:1
+Proceso:11	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:4 - Offset:2
+Proceso:14	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:1 - Offset:1
+Proceso:14	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:1 - Offset:2
+Proceso:13	Desasignacion	4:4:4	Seg	-
+Proceso:15	No hay espacio	4:4:4	Pag	-
+Proceso:11	Desasignacion	4:4:4	Seg	-
+Proceso:11	No hay espacio	4:4:4	Pag	-
+Proceso:14	Desasignacion	4:4:4	Seg	-
+Proceso:14	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:14	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:2 - Offset:2
+Proceso:16	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:1
+Proceso:16	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:2
+Proceso:16	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:3
+Proceso:16	Desasignacion	4:4:4	Seg	-
+Proceso:14	Desasignacion	4:4:4	Seg	-
+Proceso:14	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:3 - Offset:1
+Proceso:14	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:3 - Offset:2
+Proceso:14	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:3 - Offset:3
+Proceso:17	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:1
+Proceso:17	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:2
+Proceso:17	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:1 - Offset:3
+Proceso:14	Desasignacion	4:4:4	Seg	-
+Proceso:18	No hay espacio	4:4:4	Pag	-
+Proceso:19	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:1 - Offset:1
+Proceso:17	Desasignacion	4:4:4	Seg	-
+Proceso:17	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:2 - Offset:1
+Proceso:17	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:2 - Offset:2
+Proceso:20	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:1 - Offset:1
+Proceso:17	Desasignacion	4:4:4	Seg	-
+Proceso:20	Asignacion	4:4:4	Seg	Pos:3	 Num_Seg:1 - Offset:2
+Proceso:20	Asignacion	4:4:4	Seg	Pos:4	 Num_Seg:1 - Offset:3
+Proceso:19	Desasignacion	4:4:4	Seg	-
+Proceso:19	Asignacion	4:4:4	Seg	Pos:5	 Num_Seg:2 - Offset:1
+Proceso:19	Asignacion	4:4:4	Seg	Pos:6	 Num_Seg:2 - Offset:2
+Proceso:20	Desasignacion	4:4:4	Seg	-
+Proceso:19	Desasignacion	4:4:4	Seg	-
+Proceso:19	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:3 - Offset:1
+Proceso:19	Desasignacion	4:4:4	Seg	-
+Proceso:19	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:4 - Offset:1
+Proceso:19	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:4 - Offset:2
+Proceso:19	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:4 - Offset:3
+Proceso:19	Desasignacion	4:4:4	Seg	-
+Proceso:19	Asignacion	4:4:4	Seg	Pos:0	 Num_Seg:5 - Offset:1
+Proceso:19	Asignacion	4:4:4	Seg	Pos:1	 Num_Seg:5 - Offset:2
+Proceso:19	Asignacion	4:4:4	Seg	Pos:2	 Num_Seg:5 - Offset:3
+Proceso:19	Desasignacion	4:4:4	Seg	-
